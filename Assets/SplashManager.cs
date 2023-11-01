@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Threading.Tasks;
 
@@ -14,6 +15,9 @@ public class SplashManager : MonoBehaviour
 
     [Tooltip("The Logo used within the Splash Screen.")]
     public Image logo;
+
+    [Tooltip("The Title Screen loaded before the Splash Logo Transition occurs")]
+    public GameObject titleUI;
 
     private async void Start()
     {
@@ -32,20 +36,25 @@ public class SplashManager : MonoBehaviour
 
         await Task.Delay(startupDelay * 1000);
 
-        Task task = FadeImage(true);
+        Task task = FadeImage(logo, true);
         await task;
 
-        await Task.Delay(1000);
+        await Task.Delay(1500);
 
-        // load assets here!
+        if (!titleUI.activeSelf)
+            titleUI.SetActive(true);
 
-        await Task.Delay(1000);
+        Task subTask = FadeImage(logo, false);
+        
+        await Task.Delay(500);
 
-        task = SizeImageY(background.rectTransform.sizeDelta.x, Screen.currentResolution.height);
+        task = SizeImageY(background, Screen.currentResolution.height / 2);
         await task;
+
+        gameObject.SetActive(false);
     }
 
-    private async Task FadeImage(bool fadeIn)
+    private async Task FadeImage(Image image, bool fadeIn)
     {
         Color UpdateAlpha(float i)
         {
@@ -56,23 +65,33 @@ public class SplashManager : MonoBehaviour
         {
             for (float i = 1; i >= 0; i -= Time.deltaTime)
             {
-                logo.color = UpdateAlpha(i);
+                image.color = UpdateAlpha(i);
                 await Task.Yield();
             }
+
+            return;
         }
 
         for (float i = 0; i <= 1; i += Time.deltaTime)
         {
-            logo.color = UpdateAlpha(i);
+            image.color = UpdateAlpha(i);
             await Task.Yield();
         }
     }
 
-    private async Task SizeImageY(float xSize, float yRes)
+    private async Task SizeImageY(Image image, float yRes)
     {
         for (float i = 0; i <= 1; i += Time.deltaTime)
         {
-            background.rectTransform.sizeDelta = new Vector2(xSize, -Mathf.Lerp(0, yRes, i));
+            image.rectTransform.offsetMax = new Vector2(
+                image.rectTransform.offsetMin.x, 
+                -Mathf.Lerp(
+                    0, 
+                    yRes, 
+                    i
+                    )
+                );
+
             await Task.Yield();
         }
     }
