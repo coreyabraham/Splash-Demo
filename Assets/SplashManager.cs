@@ -1,18 +1,24 @@
 using System;
 using System.Collections;
 using System.Threading.Tasks;
-
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SplashManager : MonoBehaviour
 {
+    [Header("Settings")]
     [Tooltip("Delay before Splash Screen starts formatted in Seconds.")]
     public int startupDelay;
 
     [Tooltip("The Background of the Splash Logo, used as Transition")]
     public Image background;
 
+    [Tooltip("Hide the Mouse Cursor during the Splash Screen")]
+    public bool hideCursor;
+
+    [Header("Assets")]
     [Tooltip("The Logo used within the Splash Screen.")]
     public Image logo;
 
@@ -23,6 +29,9 @@ public class SplashManager : MonoBehaviour
     {
         if (startupDelay < 0)
             startupDelay = 0;
+
+        if (hideCursor)
+            Cursor.visible = false;
 
         if (logo.color.a > 0)
         {
@@ -48,8 +57,11 @@ public class SplashManager : MonoBehaviour
         
         await Task.Delay(500);
 
-        task = SizeImageY(background, Screen.currentResolution.height / 2);
+        task = SizeImageY(background, Screen.currentResolution.height);
         await task;
+
+        if (!Cursor.visible)
+            Cursor.visible = true;
 
         gameObject.SetActive(false);
     }
